@@ -21,6 +21,7 @@ function hideCartMenu() {
   // Cambia la propiedad de estilo display del menú del carrito a "none" para ocultarlo
   cartMenu.style.display = "none";
 }
+
 function hideCard() {
   var hideCard = document.getElementById("card");
   hideCard.style.visibility = "hidden";
@@ -55,126 +56,108 @@ hasSubmenu.addEventListener("click", (event) => {
     submenu.style.display = "none";
   }
 });
-const addToCartBtns = document.querySelectorAll(".add-to-cart1");
-const cartItemsContainer = document.querySelector(".cart-items");
-const cart = {};
-const subtotalBtn = document.querySelector("#subtotal-button");
 
-function createCartItem(productName, productPrice, productImage) {
-  const priceFloat = parseFloat(productPrice.replace("$", "").replace(",", ""));
-  const cartItem = document.createElement("div");
-  cartItem.classList.add("cart-item");
-  cartItem.setAttribute("data-product-name", productName);
-  cartItem.innerHTML = `
+const productos = document.querySelectorAll('.col[data-element="producto"]');
+const carrito = document.querySelector(".cart-items");
+
+const agregarProducto = (id, img, nom, pre) => {
+
+  const cookieCarrito = checkCookie("carrito") ? getCookie("carrito") : setCookie("carrito", [])
+
+  // cookieCarrito[] = {
+
+  // }
+
+  const producto = document.createElement("div");
+  producto.setAttribute("class", "cart-item");
+  producto.setAttribute("data-id", id);
+  producto.innerHTML = `
     <div>
       <div class="item-image" style="display: flex;">
-        <img src="${productImage}" alt="${productName}">
+        <img src="${img}" alt="${nom}">
         <div class="item-details">
-          <h3>${productName}</h3>
-          <p class="precio">${productPrice}</p>
+          <h3>${nom}</h3>
+          <p class="precio">${pre}</p>
         </div>
         <button class="remove-btn">X</button>
       </div>
     </div>
     <div class="item-quantity">
       <button class="quantity-btn minus-btn">-</button>
-      <input type="number" class="quantity-input" value="0" min="0" readonly>
+      <input type="number" class="quantity-input" value="1" min="0" readonly>
       <button class="quantity-btn plus-btn">+</button>
     </div>
   `;
-  cartItemsContainer.appendChild(cartItem);
-  return cartItem;
-}
-function updateCartItemQuantity(productName, cartItem, quantity) {
-  const quantityInput = cartItem.querySelector(".quantity-input");
-  cart[productName] = quantity;
-  quantityInput.value = quantity;
-  updateSubtotal();
-}
 
-function updateSubtotal() {
-  let subtotal = 0;
-  const precioElems = document.querySelectorAll(".cart-item .precio");
-  precioElems.forEach((elem) => {
-    const precio = parseFloat(
-      elem.textContent.replace("$", "").replace(",", "")
+  carrito.appendChild(producto);
+
+  const restarBtn = producto.querySelector(".minus-btn");
+  const sumarBtn = producto.querySelector(".plus-btn");
+  const eliminarBtn = producto.querySelector(".remove-btn");
+
+  const restarProductoLocal = () => {
+    restarProducto(producto.querySelector("input"));
+  };
+
+  const sumarProductoLocal = () => {
+    sumarProducto(producto.querySelector("input"));
+  };
+
+  const eliminarProductoLocal = () => {
+    // restarBtn.removeEventListener("click", restarProductoLocal);
+    // sumarBtn.removeEventListener("click", sumarProductoLocal);
+    // eliminarBtn.removeEventListener("click", eliminarProductoLocal);
+    producto.remove();
+  };
+
+  restarBtn.addEventListener("click", restarProductoLocal);
+  sumarBtn.addEventListener("click", sumarProductoLocal);
+  eliminarBtn.addEventListener("click", eliminarProductoLocal);
+};
+
+const sumarProducto = (producto) => {
+  producto.value = parseInt(producto.value) + 1;
+};
+
+const restarProducto = (producto) => {
+  if (producto.value > 1) {
+    producto.value = parseInt(producto.value) - 1;
+  }
+
+  return producto.value;
+};
+
+productos.forEach((producto) => {
+  const id = producto.getAttribute("data-id");
+  const img = producto.querySelector('[data-element="imagen-producto"]').src;
+  const nom = producto.querySelector(
+    '[data-element="nombre-producto"]'
+  ).innerHTML;
+  const pre = producto.querySelector(
+    '[data-element="precio-producto"]'
+  ).innerHTML;
+
+  const add = producto.querySelector(".add-to-cart1");
+
+  add.addEventListener("click", (e) => {
+    const productoExistente = carrito.querySelector(
+      `.cart-item[data-id="${id}"]`
     );
-    const quantityInput = elem
-      .closest(".cart-item")
-      .querySelector(".quantity-input");
-    const quantity = parseInt(quantityInput.value);
-    subtotal += precio * quantity;
-  });
-  const subtotalText = `Subtotal: $${subtotal.toFixed(2).replace(".", ",")}`;
-  subtotalBtn.textContent = `Pagar ${subtotalText}`;
-}
-subtotalBtn.addEventListener("click", () => {
-  alert(subtotalBtn.textContent);
-});
-// ... Tu código anterior ...
-
-addToCartBtns.forEach((addToCartBtn) => {
-  addToCartBtn.addEventListener("click", () => {
-    const productName = addToCartBtn
-      .closest(".col")
-      .querySelector("h3").textContent;
-    const productPrice = addToCartBtn
-      .closest(".col")
-      .querySelector(".precio").textContent;
-    const productImage = addToCartBtn
-      .closest(".col")
-      .querySelector(".product-image img").src;
-    if (cart[productName]) {
-      const existingCartItem = cartItemsContainer.querySelector(
-        `[data-product-name="${productName}"]`
-      );
-      updateCartItemQuantity(
-        productName,
-        existingCartItem,
-        cart[productName] + 1
-      );
+    if (productoExistente) {
+      sumarProducto(productoExistente.querySelector("input"));
     } else {
-      cart[productName] = 0;
-      const cartItem = createCartItem(productName, productPrice, productImage);
-      const minusBtn = cartItem.querySelector(".minus-btn");
-      const plusBtn = cartItem.querySelector(".plus-btn");
-      const quantityInput = cartItem.querySelector(".quantity-input");
-      const removeBtn = cartItem.querySelector(".remove-btn");
-      minusBtn.addEventListener("click", () => {
-        if (cart[productName] > 1) {
-          updateCartItemQuantity(productName, cartItem, cart[productName] - 1);
-        }
-      });
-      plusBtn.addEventListener("click", () => {
-        updateCartItemQuantity(productName, cartItem, cart[productName] + 1);
-      });
-      removeBtn.addEventListener("click", () => {
-        const cartItem = removeBtn.closest(".cart-item");
-        cartItem.classList.add("fade-out");
-        const cartItems = Array.from(document.querySelectorAll(".cart-item"));
-        const index = cartItems.indexOf(cartItem);
-        cartItems.slice(index + 1).forEach((item) => {
-          const top = parseInt(item.style.top);
-          item.style.top = `${top - cartItem.offsetHeight}px`;
-        });
-        setTimeout(() => {
-          cartItem.remove();
-          delete cart[productName];
-          updateSubtotal();
-          guardarCarritoEnSesion(cart); // Llama a la función para guardar el carrito en la sesión
-        }, 300);
-      });
+      agregarProducto(id, img, nom, pre);
     }
   });
 });
 
-function setCookie(productName, productPrice, productQuantity) {
-  document.cookie =
-    productName + "=" + productPrice + ";" + productQuantity + ";path=/";
+function setCookie(name, value) {
+  document.cookie = name + "=" + JSON.stringify(value) + ";path=/";
+  getCookie(name)
 }
 
-function getCookie(productName) {
-  let name = productName + "=";
+function getCookie(name) {
+  let name = name + "=";
   let decodedCookie = decodeURIComponent(document.cookie);
   let ca = decodedCookie.split(";");
   for (let i = 0; i < ca.length; i++) {
@@ -188,14 +171,8 @@ function getCookie(productName) {
   }
   return "";
 }
-function checkCookie() {
-  let user = getCookie("productName");
-  if (user != "") {
-    alert("Welcome again " + user);
-  } else {
-    user = prompt("Please enter your name:", "");
-    if (user != "" && user != null) {
-      setCookie("username", user, 365);
-    }
-  }
+
+function checkCookie(name) {
+  let cookie = getCookie(name);
+  return cookie ? true : false;  
 }
