@@ -10,10 +10,11 @@ if ($varsesion == NULL || $varsesion === '') {
   die();
 }
 ?>
+
 <?php
 include("conexion.php");
 $conectar = conectar();
-$select = "SELECT id_producto,precio,cantidad_disponible,nombre_p,tipo_prod,peso,descripcion FROM productos_panes";
+$select = "SELECT * FROM productos_panes";
 
 try {
   $resul = $conectar->execute_query($select);
@@ -105,7 +106,7 @@ while ($data = $resul->fetch_object()) {
 
 
             <div class="shopping">
-              <i class="fa fa-shopping-cart" onclick="showCartMenu()"></i>
+              <i class="fa fa-shopping-cart"></i>
               <div class="cart-menu" id="cartMenu">
                 <h2>Mi Carrito</h2>
                 <div class="direction">
@@ -121,7 +122,7 @@ while ($data = $resul->fetch_object()) {
                   <button onclick="button1()" id="button1">Seleccionar metodo de pago</button>
 
                   <div class="cam">
-                    <a href="factura.php"><button onclick="subtotal()" class="bott" id="subtotal-button" id="subtotal">Pagar Subtotal: $0.00</button></a>
+                  <a href="factura.php"><button onclick="subtotal()" class="bott" id="subtotal-button" id="subtotal">Pagar Subtotal: $<span data-element="carrito-subtotal"></span></button></a>
                   </div>
                 </div>
               </div>
@@ -180,262 +181,141 @@ while ($data = $resul->fetch_object()) {
 
 
     <main>
-      <div class="product-catalog" id="novedades">
-        <div class="hero">
-          <div class="conteiner">
-            <div class="Nov">
-              <p>NOVEDADES</p>
+      <?php
+      $isFirst = true;
+      foreach ($productos as $key => $producto) {
+      ?>
+        <div class="product-catalog" id="<?= $key ?>" style="display: <?= $isFirst ? "block" : "none" ?>">
+          <div class="hero">
+            <div class="conteiner">
+              <div class="Nov">
+                <p><?= strtoupper($key) ?></p>
+              </div>
+              <hr>
             </div>
-            <hr>
-          </div>
-          <div id="nav-menu">
-            <div class="conteiner" style="position: relative;">
-              <button id="menu-button"><i class="fa fa-bars"></i></button>
-              <nav id="menu">
-                <ul>
-                  <li><a href="#" onclick="mostrarCatalogo('novedades')">Novedades</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('panes')">Panes</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('galletas')">Galletas</a></li>
-                </ul>
-              </nav>
+            <div id="nav-menu">
+              <div class="conteiner" style="position: relative;">
+                <button id="menu-button"><i class="fa fa-bars"></i></button>
+                <nav id="menu">
+                  <ul>
+                    <li><a href="#" onclick="mostrarCatalogo('novedades')">Novedades</a></li>
+                    <li><a href="#" onclick="mostrarCatalogo('panes')">Panes</a></li>
+                    <li><a href="#" onclick="mostrarCatalogo('galletas')">Galletas</a></li>
+                  </ul>
+                </nav>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="news" style="padding-top: 70px;">
-          <div class="conteiner">
-            <div class="row">
-              <?php
-              foreach ($productos["novedades"] as $key => $value) {
-              ?>
-                <div class="col" data-element="producto" data-id="<?= $value->id_producto ?>">
-                  <div class="slider">
-                    <img data-element="imagen-producto" src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true" class="active">
-                    <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(2).webp?raw=true">
-                  </div>
-                  <div class="product-info">
-                    <h3 data-element="nombre-producto"><?= $value->nombre_p ?></h3>
-                    <p class="precio">$<span data-element="precio-producto"></span><?= $value->precio ?></p>
-                    <button class="add-to-cart"><i class="fas fa-shopping-cart"></i><span>Agregar</span></button>
-                  </div>
-                  <div class="popup">
-                    <div class="popup-content">
-                      <div class="product-image">
-                        <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true">
-                      </div>
-                      <div class="product-details">
-                        <div class="product-header">
-                          <h3><?= $value->nombre_p ?></h3>
-                          <button class="close"><i class="fas fa-times"></i></button>
+          <div class="news" style="padding-top: 70px;">
+            <div class="conteiner">
+              <div class="row">
+                <?php
+                foreach ($producto as $key => $value) {
+                ?>
+                  <div class="col" data-element="producto" data-group-element="panes" data-id="<?= $value->id_producto ?>">
+                    <div class="slider">
+                      <img data-element="imagen-producto" src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true" class="active">
+                      <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(2).webp?raw=true">
+                    </div>
+                    <div class="product-info">
+                      <h3 data-element="nombre-producto"><?= $value->nombre_p ?></h3>
+                      <p class="precio">$<span data-element="precio-producto"><?= $value->precio ?></span></p>
+                      <button class="add-to-cart"><i class="fas fa-shopping-cart"></i><span>Agregar</span></button>
+                    </div>
+                    <div class="popup">
+                      <div class="popup-content">
+                        <div class="product-image">
+                          <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true">
                         </div>
-                        <p><?= $value->descripcion ?></p>
-                        <p><b>Peso:</b> <?= $value->peso ?> gramos</p>
-                        <p><b>Cantidad disponible:</b><?= $value->cantidad_disponible ?></p>
-                        <button class="add-to-cart1">Agregar al carrito</button>
+                        <div class="product-details">
+                          <div class="product-header">
+                            <h3><?= $value->nombre_p ?></h3>
+                            <button class="close"><i class="fas fa-times"></i></button>
+                          </div>
+                          <p><?= $value->descripcion ?></p>
+                          <p><b>Peso:</b> <?= $value->peso ?> gramos</p>
+                          <p><b>Cantidad disponible:</b><?= $value->cantidad_disponible ?></p>
+                          <button class="add-to-cart1">Agregar al carrito</button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              <?php
-              }
-              ?>
+                <?php
+                  $isFirst = false;
+                }
+                ?>
+              </div>
             </div>
+          </div>
+        </div>
+      <?php
+      }
+      ?>
+      <div class=" button-pagination">
+        <button>1</button>
+        <button>2</button>
+      </div>
+  </div>
+  </div>
+  </div>
+  </main>
+  <footer>
+    <div class="conteiner">
+      <div class="header">
+        <div class="logo">
+          <span></span>
+        </div>
+      </div>
+      <hr>
+      <div class="section">
+        <div>
+          <h2>Empresa</h2>
+          <a href="Index.php">Inicio</a>
+          <a href="ContactosUsuario.php">Contactanos</a>
+          <a href="Nosotros.php">Nosotros</a>
+        </div>
+        <div>
+          <h2>Servicios</h2>
+          <a href="">Domicilios</a>
+          <a href="">Pedios Especiales</a>
+        </div>
+        <div>
+          <h2>Redes Sociales</h2>
+          <div class="shop-cart">
+            <ul>
+              <li>
+                <a href="https://www.facebook.com/ronaldo.stiven52">
+                  <i class="fab fa-facebook-f icon"></i>
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <i class="fa-brands fa-x-twitter"></i>
+                </a>
+              </li>
+              <li>
+                <a href="https://wa.me/+573154875304">
+                  <i class="fab fa-whatsapp icon"></i>
+                </a>
+              </li>
+              <li>
+                <a href="https://www.instagram.com/ronaldo07_rg/">
+                  <i class="fab fa-instagram icon"></i>
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
-      <div class="product-catalog" id="panes" style="display: none;">
-        <div class="hero">
-          <div class="conteiner">
-            <div class="Nov">
-              <p>PANES</p>
-            </div>
-            <hr>
-          </div>
-          <div id="nav-menu">
-            <div class="conteiner" style="position: relative;">
-              <button id="menu-button"><i class="fa fa-bars"></i></button>
-              <nav id="menu">
-                <ul>
-                  <li><a href="#" onclick="mostrarCatalogo('novedades')">Novedades</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('panes')">Panes</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('galletas')">Galletas</a></li>
-                </ul>
-              </nav>
-            </div>
-          </div>
-        </div>
 
-        <div class="news" style="padding-top: 70px;">
-          <div class="conteiner">
-            <div class="row">
-              <?php
-              foreach ($productos["panes"] as $key => $value) {
-              ?>
-                <div class="col" data-element="producto" data-id="<?= $value->id_producto ?>">
-                  <div class="slider">
-                    <img data-element="imagen-producto" src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true" class="active">
-                    <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(2).webp?raw=true">
-                  </div>
-                  <div class="product-info">
-                    <h3 data-element="nombre-producto"><?= $value->nombre_p ?></h3>
-                    <p class="precio">$<span data-element="precio-producto"></span><?= $value->precio ?></p>
-                    <button class="add-to-cart"><i class="fas fa-shopping-cart"></i><span>Agregar</span></button>
-                  </div>
-                  <div class="popup">
-                    <div class="popup-content">
-                      <div class="product-image">
-                        <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true">
-                      </div>
-                      <div class="product-details">
-                        <div class="product-header">
-                          <h3><?= $value->nombre_p ?></h3>
-                          <button class="close"><i class="fas fa-times"></i></button>
-                        </div>
-                        <p><?= $value->descripcion ?></p>
-                        <p><b>Peso:</b> <?= $value->peso ?> gramos</p>
-                        <p><b>Cantidad disponible:</b><?= $value->cantidad_disponible ?></p>
-                        <button class="add-to-cart1">Agregar al carrito</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <?php
-              }
-              ?>
-            </div>
-          </div>
-        </div>
+
+      <div class="Rights">
+        <p>Copyright©2023LaBaguette. All right reserved</p>
+        <p>Privacy Policy Terms and conditions</p>
       </div>
-      <div class="product-catalog" id="galletas" style="display: none;">
-        <div class="hero">
-          <div class="conteiner">
-            <div class="Nov">
-              <p>GALLETAS</p>
-            </div>
-            <hr>
-          </div>
-          <div id="nav-menu">
-            <div class="conteiner" style="position: relative;">
-              <button id="menu-button"><i class="fa fa-bars"></i></button>
-              <nav id="menu">
-                <ul>
-                  <li><a href="#" onclick="mostrarCatalogo('novedades')">Novedades</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('panes')">Panes</a></li>
-                  <li><a href="#" onclick="mostrarCatalogo('galletas')">Galletas</a></li>
-                </ul>
-              </nav>
-            </div>
-          </div>
-        </div>
-
-        <div class="news" style="padding-top: 70px;">
-          <div class="conteiner">
-            <div class="row">
-              <?php
-              foreach ($productos["galletas"] as $key => $value) {
-              ?>
-                <div class="col" data-element="producto" data-id="<?= $value->id_producto ?>">
-                  <div class="slider">
-                    <img data-element="imagen-producto" src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true" class="active">
-                    <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(2).webp?raw=true">
-                  </div>
-                  <div class="product-info">
-                    <h3 data-element="nombre-producto"><?= $value->nombre_p ?></h3>
-                    <p class="precio">$<span data-element="precio-producto"></span><?= $value->precio ?></p>
-                    <button class="add-to-cart"><i class="fas fa-shopping-cart"></i><span>Agregar</span></button>
-                  </div>
-                  <div class="popup">
-                    <div class="popup-content">
-                      <div class="product-image">
-                        <img src="https://github.com/Ronaldo07rgr/Repositorio_LaBaguette/blob/master/assets/static/Catalogo%20de%20pan/Novedades/Baguette/Baguette%20(1).webp?raw=true">
-                      </div>
-                      <div class="product-details">
-                        <div class="product-header">
-                          <h3><?= $value->nombre_p ?></h3>
-                          <button class="close"><i class="fas fa-times"></i></button>
-                        </div>
-                        <p><?= $value->descripcion ?></p>
-                        <p><b>Peso:</b> <?= $value->peso ?> gramos</p>
-                        <p><b>Cantidad disponible:</b><?= $value->cantidad_disponible ?></p>
-                        <button class="add-to-cart1">Agregar al carrito</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              <?php
-              }
-              ?>
-            </div>
-
-
-
-
-            <div class=" button-pagination">
-
-
-              <button>1</button>
-              <button>2</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-    <footer>
-      <div class="conteiner">
-        <div class="header">
-          <div class="logo">
-            <span></span>
-          </div>
-        </div>
-        <hr>
-        <div class="section">
-          <div>
-            <h2>Empresa</h2>
-            <a href="Index.php">Inicio</a>
-            <a href="ContactosUsuario.php">Contactanos</a>
-            <a href="Nosotros.php">Nosotros</a>
-          </div>
-          <div>
-            <h2>Servicios</h2>
-            <a href="">Domicilios</a>
-            <a href="">Pedios Especiales</a>
-          </div>
-          <div>
-            <h2>Redes Sociales</h2>
-            <div class="shop-cart">
-              <ul>
-                <li>
-                  <a href="https://www.facebook.com/ronaldo.stiven52">
-                    <i class="fab fa-facebook-f icon"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="#">
-                    <i class="fa-brands fa-x-twitter"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://wa.me/+573154875304">
-                    <i class="fab fa-whatsapp icon"></i>
-                  </a>
-                </li>
-                <li>
-                  <a href="https://www.instagram.com/ronaldo07_rg/">
-                    <i class="fab fa-instagram icon"></i>
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-
-        <div class="Rights">
-          <p>Copyright©2023LaBaguette. All right reserved</p>
-          <p>Privacy Policy Terms and conditions</p>
-        </div>
-      </div>
-    </footer>
+    </div>
+  </footer>
   </div>
   </div>
   </div>

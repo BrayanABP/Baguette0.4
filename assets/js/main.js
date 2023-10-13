@@ -1,3 +1,29 @@
+function setCookie(c, v) {
+  document.cookie = c + "=" + JSON.stringify(v) + ";path=/";
+  getCookie(c);
+}
+
+function getCookie(c) {
+  let name = c + "=";
+  let decodedCookie = decodeURIComponent(document.cookie);
+  let ca = decodedCookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1);
+    }
+    if (c.indexOf(name) == 0) {
+      return JSON.parse(c.substring(name.length, c.length));
+    }
+  }
+  return "";
+}
+
+function checkCookie(c) {
+  let cookie = getCookie(c);
+  return cookie ? true : false;
+}
+
 // Este codigo pertenece al submene que aparece al dar clic en Nosotros en el menu de navegacion
 // Obtiene el elemento que tiene la clase 'has-submenu'
 const hasSubmenu = document.querySelector(".has-submenu");
@@ -8,12 +34,12 @@ submenu.style.display = "none";
 
 // codigo de el menu desplegable del carrito de compras
 // Define la función showCartMenu para mostrar el menú del carrito
-function showCartMenu() {
+document.querySelector(".fa.fa-shopping-cart").addEventListener("click", () => {
   // Obtiene el elemento del menú del carrito por su ID
   var cartMenu = document.getElementById("cartMenu");
   // Cambia la propiedad de estilo display del menú del carrito a "block" para hacerlo visible
   cartMenu.style.display = "block";
-}
+});
 // Define la función hideCartMenu para ocultar el menú del carrito
 function hideCartMenu() {
   // Obtiene el elemento del menú del carrito por su ID
@@ -60,31 +86,25 @@ hasSubmenu.addEventListener("click", (event) => {
 const productos = document.querySelectorAll('.col[data-element="producto"]');
 const carrito = document.querySelector(".cart-items");
 
-const agregarProducto = (id, img, nom, pre) => {
-
-  const cookieCarrito = checkCookie("carrito") ? getCookie("carrito") : setCookie("carrito", [])
-
-  // cookieCarrito[] = {
-
-  // }
-
+const agregarProducto = (g, id, img, nom, pre, cant) => {
   const producto = document.createElement("div");
   producto.setAttribute("class", "cart-item");
   producto.setAttribute("data-id", id);
+  producto.setAttribute("data-group-element", g);
   producto.innerHTML = `
     <div>
       <div class="item-image" style="display: flex;">
         <img src="${img}" alt="${nom}">
         <div class="item-details">
           <h3>${nom}</h3>
-          <p class="precio">${pre}</p>
+          <p>$<span class="precio">${pre}</span></p>
         </div>
         <button class="remove-btn">X</button>
       </div>
     </div>
     <div class="item-quantity">
       <button class="quantity-btn minus-btn">-</button>
-      <input type="number" class="quantity-input" value="1" min="0" readonly>
+      <input type="number" class="quantity-input" value="${cant}" min="0" readonly>
       <button class="quantity-btn plus-btn">+</button>
     </div>
   `;
@@ -96,18 +116,20 @@ const agregarProducto = (id, img, nom, pre) => {
   const eliminarBtn = producto.querySelector(".remove-btn");
 
   const restarProductoLocal = () => {
-    restarProducto(producto.querySelector("input"));
+    cambiarCantidadProducto(producto.querySelector("input"), -1, id, g);
   };
 
   const sumarProductoLocal = () => {
-    sumarProducto(producto.querySelector("input"));
+    cambiarCantidadProducto(producto.querySelector("input"), 1, id, g);
   };
 
   const eliminarProductoLocal = () => {
-    // restarBtn.removeEventListener("click", restarProductoLocal);
-    // sumarBtn.removeEventListener("click", sumarProductoLocal);
-    // eliminarBtn.removeEventListener("click", eliminarProductoLocal);
+    eliminarProductoCookie(g, id);
+    restarBtn.removeEventListener("click", restarProductoLocal);
+    sumarBtn.removeEventListener("click", sumarProductoLocal);
+    eliminarBtn.removeEventListener("click", eliminarProductoLocal);
     producto.remove();
+    calcularTotal()
   };
 
   restarBtn.addEventListener("click", restarProductoLocal);
@@ -115,19 +137,73 @@ const agregarProducto = (id, img, nom, pre) => {
   eliminarBtn.addEventListener("click", eliminarProductoLocal);
 };
 
-const sumarProducto = (producto) => {
-  producto.value = parseInt(producto.value) + 1;
+const calcularTotal = () => {
+  const productos = carrito.querySelectorAll(".cart-item")
+  const subtotal = document.querySelector('[data-element="carrito-subtotal"]')
+
+  subtotal.innerHTML = 0
+
+  productos.forEach((p) => {
+    const cant = parseInt(p.querySelector("input").value)
+    const precio = parseInt(p.querySelector(".precio").innerHTML)
+    subtotal.innerHTML = parseInt(subtotal.innerHTML) + (precio * cant)
+  })
+}
+
+const cambiarCantidadProducto = (p, v, id, g) => {
+  const enCookie = (v) => {
+    const cookieCarritoArray = checkCookie("carrito")
+      ? getCookie("carrito")
+      : {};
+    cookieCarritoArray[g][id].cantidad += v;
+    setCookie("carrito", cookieCarritoArray);
+  };
+
+  p.value = parseInt(p.value) + v;
+  enCookie(v);
+
+  if (p.value < 1) {
+    p.value = 1;
+    enCookie(1);
+  }
+  calcularTotal();
 };
 
-const restarProducto = (producto) => {
-  if (producto.value > 1) {
-    producto.value = parseInt(producto.value) - 1;
+const agregarProductoCookie = (g, id, img, nom, pre) => {
+  const cookieCarritoArray = checkCookie("carrito")
+    ? getCookie("carrito")
+    : { [g]: {} };
+
+  let cookieProducto = Object.hasOwn(cookieCarritoArray, g) &&  Object.hasOwn(cookieCarritoArray[g], id)? cookieCarritoArray[g][id] : false;
+
+  if (!cookieProducto) {
+    cookieProducto = {
+      imagen: img,
+      nombre: nom,
+      precio: pre,
+      cantidad: 1,
+    };
   }
 
-  return producto.value;
+  setCookie("carrito", {
+    ...cookieCarritoArray,
+    [g]: {
+      ...cookieCarritoArray[g],
+      [id]: {
+        ...cookieProducto,
+      },
+    },
+  });
+};
+
+const eliminarProductoCookie = (g, id) => {
+  const cookieCarritoArray = checkCookie("carrito") ? getCookie("carrito") : {};
+  delete cookieCarritoArray[g][id];
+  setCookie("carrito", cookieCarritoArray);
 };
 
 productos.forEach((producto) => {
+  const group = producto.getAttribute("data-group-element");
   const id = producto.getAttribute("data-id");
   const img = producto.querySelector('[data-element="imagen-producto"]').src;
   const nom = producto.querySelector(
@@ -141,38 +217,36 @@ productos.forEach((producto) => {
 
   add.addEventListener("click", (e) => {
     const productoExistente = carrito.querySelector(
-      `.cart-item[data-id="${id}"]`
+      `.cart-item[data-id="${id}"][data-group-element="${group}"]`
     );
     if (productoExistente) {
-      sumarProducto(productoExistente.querySelector("input"));
+      cambiarCantidadProducto(
+        productoExistente.querySelector("input"),
+        1,
+        id,
+        group
+      );
     } else {
-      agregarProducto(id, img, nom, pre);
+      agregarProducto(group, id, img, nom, pre, 1);
+      agregarProductoCookie(group, id, img, nom, pre);
     }
+    calcularTotal();
   });
 });
 
-function setCookie(name, value) {
-  document.cookie = name + "=" + JSON.stringify(value) + ";path=/";
-  getCookie(name)
-}
-
-function getCookie(name) {
-  let name = name + "=";
-  let decodedCookie = decodeURIComponent(document.cookie);
-  let ca = decodedCookie.split(";");
-  for (let i = 0; i < ca.length; i++) {
-    let c = ca[i];
-    while (c.charAt(0) == " ") {
-      c = c.substring(1);
-    }
-    if (c.indexOf(name) == 0) {
-      return c.substring(name.length, c.length);
+(() => {
+  const cookieCarrito = checkCookie("carrito") ? getCookie("carrito") : {};
+  for (let p in cookieCarrito) {
+    for (let g in cookieCarrito[p]) {
+      agregarProducto(
+        p,
+        g,
+        cookieCarrito[p][g].imagen,
+        cookieCarrito[p][g].nombre,
+        cookieCarrito[p][g].precio,
+        cookieCarrito[p][g].cantidad
+      );
     }
   }
-  return "";
-}
-
-function checkCookie(name) {
-  let cookie = getCookie(name);
-  return cookie ? true : false;  
-}
+  calcularTotal();
+})();

@@ -3,8 +3,7 @@ include("conexion.php");
 $conectar = conectar();
 session_start();
 $fecha_dehoy = date("Y-m-d");
-function generarCodigoAleatorio($longitud)
-{
+function generarCodigoAleatorio($longitud) {
   $caracteres = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
   $codigo = '';
   for ($i = 0; $i < $longitud; $i++) {
@@ -22,38 +21,19 @@ while ($data = $resul->fetch_assoc()) {
   $direccion = $data['direccion'];
 }
 
-$carrito = array(
-  'Producto1' => array(
-    'cantidad' => 2,
-    'precio' => 10.99
-  ),
-  'Producto2' => array(
-    'cantidad' => 3,
-    'precio' => 15.99
-  ),
-  'Producto3' => array(
-    'cantidad' => 1,
-    'precio' => 5.99
-  )
-);
-$carritoJSON = json_encode($carrito);
-setcookie('productName', $carritoJSON, time() + 3600); // Caduca en 1 hora
+$carritoJSON = json_decode($_COOKIE["carrito"]);
 
-if (isset($_COOKIE['productName'])) {
-  // Recupera el contenido de la cookie 'carrito' y decodifícalo desde JSON
-  $carritoJSON = $_COOKIE['productName'];
-  $carrito = json_decode($carritoJSON, true);
-  
-  // Itera sobre el carrito y muestra los productos seleccionados
-  foreach ($carrito as $producto => $datosProducto) {
-    $nombre = $producto;
-    $cantidad = $datosProducto['cantidad'];
-    $precio = $datosProducto['precio'];
+$groups = [];
 
+foreach ($carritoJSON as $key => $value) {
+  $arr = (array)$value;
+  if (!empty($arr)) {
+    $groups[$key] = $arr;
   }
-} else {
-  echo "El carrito está vacío.";
 }
+
+$total = 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -97,25 +77,71 @@ if (isset($_COOKIE['productName'])) {
         <p><?php echo $direccion ?></p>
       </div>
       <div class="linea"></div>
-      <div class="col2">
-        <div class="lum">
-          <h1>Cantidad</h1>
-          <p><?php echo $cantidad ?></p>
-        </div>
-        <div class="lum">
-          <h1>Producto</h1>
-          <p><?php echo $nombre ?></p>
-        </div>
-        <div class="lum">
-          <h1>Total</h1>
-          <p>$<?php echo number_format($precio, 2) ?></p>
-        </div>
-      </div>
+      <table style="width: 100%; padding: 0 75px ">
+        <thead>
+          <tr>
+            <th class="lum">
+              <h1>Cantidad</h1>
+            </th>
+            <th class="lum">
+              <h1>Precio</h1>
+            </th>
+            <th class="lum">
+              <h1>Total</h1>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <?php
+          if (empty($group))  {
+            ?>
+              <tr>
+                <td colspan="3">No hay productos en el carrito</td>
+              </tr>
+            <?php
+          } else {
+            foreach ($groups as $key => $group) {
+              ?>
+                <tr>
+                  <td colspan="3"><b> - <?= ucfirst($key) ?></b></td>
+                </tr>
+                <tr>
+                  <?php
+                  foreach ($group as $key => $element) {
+                  ?>
+                    <td class="lum">
+                      <p><?= $element->cantidad ?></p>
+                    </td>
+                    <td class="lum">
+                      <p><?= $element->precio ?></p>
+                    </td>
+                    <td class="lum">
+                      <p>
+                        <span>$</span>
+                        <?php
+    
+                        $subtotal = $element->cantidad * $element->precio;
+                        $total += $subtotal;
+    
+                        echo $subtotal;
+                        ?>
+                      </p>
+                    </td>
+                  <?php
+                  }
+                  ?>
+                </tr>
+              <?php
+              }
+          }
+          ?>
+        </tbody>
+      </table>
       <div class="linea"></div>
       <div class="col3">
         <div class="domi">
           <h1>Subtotal</h1>
-          <p>$<?php echo $precio ?></p>
+          <p>$<span><?= $total ?></span></p>
         </div>
       </div>
       <div>
